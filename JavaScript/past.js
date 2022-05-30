@@ -1,88 +1,103 @@
+let eventosAPI = []
 var checkboxSelected = []
 var textSearch = ""
 
-function createdCheckbox() {
-    var checkboxes = document.getElementById("checkboxes")
-    var todasLasCategorias = data.eventos.map(evento => evento.category)
-    // console.log(todasLasCategorias)
-    const dataArray = new Set(todasLasCategorias);
-    // console.log(dataArray)
-    var categorias = [...dataArray]
-    // console.log(categorias);
+async function getDataFromAPI() {
+    await fetch("https://amazing-events.herokuapp.com/api/events")
+    .then(response => response.json())
+    .then(json => eventosAPI = json)
+    console.log(eventosAPI)
+    let currentDate = eventosAPI.currentDate
+    console.log(currentDate);
+    let eventos = eventosAPI.events
+    console.log(eventos);
 
-    var inputCheckbox = ""
-    categorias.forEach(category => {
-    inputCheckbox += `<label for=""><input type="checkbox" value="${category}">${category}</label>`
-    })
-    checkboxes.innerHTML = inputCheckbox
-    var id = 1
-    data.eventos.map(evento => evento.id = id++)
-    console.log(data.eventos)
-}
-createdCheckbox()
-
-var checkbox = document.querySelectorAll("input[type=checkbox]")
-console.log(checkbox)
-checkbox.forEach(check => check.addEventListener("click", (event) => {
-    var checked = event.target.checked
-    if (checked) {
-        checkboxSelected.push(event.target.value)
-        filterArray()
-    } else {
-        checkboxSelected = checkboxSelected.filter(uncheck => uncheck !== event.target.value)
-        filterArray()
+    function createdCheckbox() {
+        var checkboxes = document.getElementById("checkboxes")
+        var todasLasCategorias = eventos.map(evento => evento.category)
+        // console.log(todasLasCategorias)
+        const dataArray = new Set(todasLasCategorias);
+        // console.log(dataArray)
+        var categorias = [...dataArray]
+        // console.log(categorias);
+    
+        var inputCheckbox = ""
+        categorias.forEach(category => {
+        inputCheckbox += `<label for=""><input type="checkbox" value="${category}">${category}</label>`
+        })
+        checkboxes.innerHTML = inputCheckbox
+        var id = 1
+        eventos.map(evento => evento.id = id++)
+        console.log(eventos)
     }
-}))
-
-var inputSearch = document.getElementById("search")
-inputSearch.addEventListener("keyup", (event) =>{
-    textSearch = event.target.value
+    createdCheckbox()
+    
+    function filterArray() {
+        let datos = []
+        if (checkboxSelected.length > 0 && textSearch !== ""){
+            checkboxSelected.map(category =>{
+                datos.push(...eventos.filter(evento => evento.name.toLowerCase().includes(textSearch.trim().toLowerCase()) && evento.category == category))})
+        } else if (checkboxSelected.length > 0 && textSearch === ""){
+            checkboxSelected.map(category => datos.push(...eventos.filter(evento => evento.category == category)))
+        } else if (checkboxSelected.length == 0 && textSearch !==""){
+            datos.push(...eventos.filter(evento => evento.name.toLowerCase().includes(textSearch.trim().toLowerCase())))
+        } else {datos.push(...eventos)}
+        displayCards(datos)
+    }
     filterArray()
-})
-
-function filterArray() {
-    let datos = []
-    if (checkboxSelected.length > 0 && textSearch !== ""){
-        checkboxSelected.map(category =>{
-            datos.push(...data.eventos.filter(evento => evento.name.toLowerCase().includes(textSearch.trim().toLowerCase()) && evento.category == category))})
-    } else if (checkboxSelected.length > 0 && textSearch === ""){
-        checkboxSelected.map(category => datos.push(...data.eventos.filter(evento => evento.category == category)))
-    } else if (checkboxSelected.length == 0 && textSearch !==""){
-        datos.push(...data.eventos.filter(evento => evento.name.toLowerCase().includes(textSearch.trim().toLowerCase())))
-    } else {datos.push(...data.eventos)}
-    displayCards(datos)
-}
-filterArray()
-
-function displayCards(datos) {
-    var templateHtml = ""
-    for (let i=0; i<datos.length; i++) {
-        if (data.fechaActual > datos[i].date) {
-            templateHtml += `
-            <div class="col">
-            <div class="card card-home">
-                <img src="${datos[i].image}">
-                <div class="card-body">
-                    <h5 class="card-title">${datos[i].name}</h5>
-                    <p class="card-text">${datos[i].description}</p>
-                </div>
-                <div class="card-footer">
-                    <h6>Precio: ${datos[i].price}$</h6>
-                    <a href="./details.html?id=${datos[i].id}" class="btn btn-primary">See more</a>
-                </div>
-            </div>
-        </div>`
+    
+    var checkbox = document.querySelectorAll("input[type=checkbox]")
+    // console.log(checkbox)
+    checkbox.forEach(check => check.addEventListener("click", (event) => {
+        var checked = event.target.checked
+        if (checked) {
+            checkboxSelected.push(event.target.value)
+            filterArray()
+        } else {
+            checkboxSelected = checkboxSelected.filter(uncheck => uncheck !== event.target.value)
+            filterArray()
         }
+    }))
+    
+    var inputSearch = document.getElementById("search")
+    inputSearch.addEventListener("keyup", (event) =>{
+        textSearch = event.target.value
+        filterArray()
+    })
+    
+    function displayCards(datos) {
+        var templateHtml = ""
+        for (let i=0; i<datos.length; i++) {
+            if (currentDate > datos[i].date) {
+                templateHtml += `
+                <div class="col">
+                <div class="card card-home">
+                    <img src="${datos[i].image}">
+                    <div class="card-body">
+                        <h5 class="card-title">${datos[i].name}</h5>
+                        <p class="card-text">${datos[i].description}</p>
+                    </div>
+                    <div class="card-footer">
+                        <h6>Precio: ${datos[i].price}$</h6>
+                        <a href="./details.html?id=${datos[i].id}" class="btn btn-primary">See more</a>
+                    </div>
+                </div>
+            </div>`
+            }
+        }
+        if(datos.length > 0){
+            document.querySelector("#cartas-past").innerHTML = templateHtml
+        } else {
+            document.querySelector("#cartas-past").innerHTML =
+            `<div class="sinResultado">
+                <h3>No results found. Please try again.</h3>
+            </div>`
+        }   
     }
-    if(datos.length > 0){
-        document.querySelector("#cartas-past").innerHTML = templateHtml
-    } else {
-        document.querySelector("#cartas-past").innerHTML =
-        `<div class="sinResultado">
-            <h3>No results found. Please try again.</h3>
-        </div>`
-    }   
 }
+
+getDataFromAPI()
+
 
 // // FUNCION CON FOREACH
 // function displayCards() {
