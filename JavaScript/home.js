@@ -82,7 +82,7 @@ function displayCards(datos) {
                         </div>
                         <div class="card-footer">
                             <h6>Precio: ${datos[i].price}$</h6>
-                            <a href="./details.html?id=${datos[i].id}" class="btn btn-primary">See more</a>
+                            <a href="./Section/details.html?id=${datos[i].id}" class="btn btn-primary">See more</a>
                         </div>
                     </div>
                 </div>`
